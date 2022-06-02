@@ -1,0 +1,38 @@
+{
+  "name": "beams-backend",
+  "version": "1.0.0",
+  "description": "BEAMS Server",
+  "main": "app.js",
+  "engines": {
+    "node": "16.13.1"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "NODE_ENV=production node app.js",
+    "start-server": "node app.js",
+    "start:dev": "nodemon app.js",
+    "dummy": "python .\\utils\\virtualNode.py"
+  },
+  "author": "Rahino Quijano",
+  "license": "ISC",
+  "dependencies": {
+    "axios": "^0.26.1",
+    "bcryptjs": "^2.4.3",
+    "body-parser": "^1.19.2",
+    "ejs": "^3.1.6",
+    "express": "^4.17.3",
+    "express-validator": "^5.3.0",
+    "helmet": "^5.0.2",
+    "jsonwebtoken": "^8.3.0",
+    "luxon": "^2.3.2",
+    "mongoose": "^6.2.3",
+    "multer": "^1.4.0",
+    "nodemailer": "^6.7.3",
+    "perlin-noise-3d": "^0.5.4",
+    "socket.io": "^4.4.1",
+    "xmldom": "^0.6.0"
+  },
+  "devDependencies": {
+    "nodemon": "^2.0.15"
+  }
+}
