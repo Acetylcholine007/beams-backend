@@ -13,36 +13,36 @@ exports.testPostReading = async (req, res, next) => {
       error.data = errors.array();
       throw error;
     }
-    const dateParts = req.body.date.split("/");
-    const timeParts = req.body.time.split(":");
+    // const dateParts = req.body.date.split("/");
+    // const timeParts = req.body.time.split(":");
 
-    let datetime = DateTime.local({
-      year: dateParts[2],
-      day: dateParts[1],
-      month: dateParts[0],
-      hour: timeParts[0],
-      minute: timeParts[1],
-      second: timeParts[2],
-    }).setZone("Asia/Singapore");
+    // let datetime = DateTime.local({
+    //   year: dateParts[2],
+    //   day: dateParts[1],
+    //   month: dateParts[0],
+    //   hour: timeParts[0],
+    //   minute: timeParts[1],
+    //   second: timeParts[2],
+    // }).setZone("Asia/Singapore");
 
     const reading = new Reading({
       serialKey: req.body.serialKey,
-      floodLevel: req.body.floodLevel,
-      precipitation: req.body.precipitation,
-      current: req.body.current,
-      turbidity: req.body.turbidity,
-      datetime,
+      rawX: req.body.rawX,
+      rawY: req.body.rawY,
+      rawZ: req.body.rawZ,
+      fftX: req.body.rawX,
+      fftY: req.body.fftY,
+      fftZ: req.body.fftZ,
+      rawDatetime: req.body.rawDatetime,
+      fftDatetime: req.body.fftDatetime,
+      datetime: req.body.datetime,
     });
 
-    const node = await Node.findOne({serialKey: req.body.serialKey});
-    node.currentLevel = req.body.floodLevel;
-    await node.save();
-
     // Corrective Logic
-    if (dateParts[2] === "1970") {
-      datetime = DateTime.now().setLocale("ph");
-      reading.datetime = datetime;
-    }
+    // if (dateParts[2] === "1970") {
+    //   datetime = DateTime.now().setLocale("ph");
+    //   reading.datetime = datetime;
+    // }
 
     console.log(reading);
     io.getIO().emit(req.body.serialKey, reading);

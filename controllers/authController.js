@@ -17,8 +17,6 @@ exports.signup = async (req, res, next) => {
     }
     const firstname = req.body.firstname;
     const lastname = req.body.lastname;
-    const contactNo = req.body.contactNo;
-    const defaultBuoy = req.body.defaultBuoy;
     const email = req.body.email;
     const password = req.body.password;
     const hashedPw = await bcrypt.hash(password, 12);
@@ -26,8 +24,6 @@ exports.signup = async (req, res, next) => {
     const user = new User({
       firstname,
       lastname,
-      contactNo,
-      defaultBuoy,
       email,
       password: hashedPw,
     });
@@ -64,7 +60,7 @@ exports.login = async (req, res, next) => {
     const email = req.body.email;
     const password = req.body.password;
     let loadedUser;
-    const user = await User.findOne({ email: email }).populate('defaultBuoy');
+    const user = await User.findOne({ email: email });
     if (!user) {
       const error = new Error("Email does not exist");
       error.statusCode = 401;
@@ -99,9 +95,7 @@ exports.login = async (req, res, next) => {
         userId: loadedUser._id.toString(),
         firstname: loadedUser.firstname,
         lastname: loadedUser.lastname,
-        contactNo: loadedUser.contactNo,
         accountType: loadedUser.accountType,
-        defaultBuoy: loadedUser.defaultBuoy
       },
     });
   } catch (err) {

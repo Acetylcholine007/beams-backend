@@ -9,7 +9,7 @@ const Node = require("../models/Node");
 
 router.get("/", nodeController.gatNodes);
 
-router.get("/:nodeId", userAuthMW, nodeController.getNode);
+router.get("/:nodeId", nodeController.getNode);
 
 router.post(
   "/",
@@ -25,31 +25,23 @@ router.post(
         }
         return Node.findOne({ serialKey: value }).then((nodeDoc) => {
           if (nodeDoc) {
-            return Promise.reject("Buoy with the same serial already exist");
+            return Promise.reject("Node with the same serial already exist");
           }
         });
       }),
-    body("alertThreshold").not().isEmpty().withMessage("Enter Alert Threshold"),
-    body("alarmThreshold").not().isEmpty().withMessage("Enter Alarm Threshold"),
-    body("criticalThreshold")
-      .not()
-      .isEmpty()
-      .withMessage("Enter Critical Threshold"),
+      body("point").not().isEmpty().withMessage("Enter Structure point identification"),
+      body("structure").not().isEmpty().withMessage("Enter Structure identification"),
   ],
   nodeController.postNode
 );
 
 router.patch(
   "/:nodeId",
-  [
-    body("alertThreshold").not().isEmpty().withMessage("Enter Alert Threshold"),
-    body("alarmThreshold").not().isEmpty().withMessage("Enter Alarm Threshold"),
-    body("criticalThreshold")
-      .not()
-      .isEmpty()
-      .withMessage("Enter Critical Threshold"),
-  ],
   userAuthMW,
+  [
+    body("point").not().isEmpty().withMessage("Enter Structure point identification"),
+    body("structure").not().isEmpty().withMessage("Enter Structure identification"),
+  ],
   nodeController.patchNode
 );
 

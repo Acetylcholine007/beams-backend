@@ -35,11 +35,6 @@ router.post(
       .not()
       .isEmpty()
       .withMessage("Please enter Last Name"),
-    body("contactNo")
-      .trim()
-      .not()
-      .isEmpty()
-      .withMessage("Please enter Contact No."),
   ],
   authController.signup
 );

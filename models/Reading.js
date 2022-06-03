@@ -4,10 +4,14 @@ const Schema = mongoose.Schema;
 const readingSchema = Schema(
   {
     serialKey: String,
-    floodLevel: Number,
-    precipitation: Number,
-    current: Number,
-    turbidity: Number,
+    rawX: [Number],
+    rawY: [Number],
+    rawZ: [Number],
+    fftX: [Number],
+    fftY: [Number],
+    fftZ: [Number],
+    rawDatetime: [Date],
+    fftDatetime: [Date],
     datetime: Date,
   },
   {

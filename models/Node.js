@@ -7,24 +7,12 @@ const nodeSchema = new Schema(
       type: String,
       required: true,
     },
-    location: {
+    point: {
       type: String,
       required: true,
     },
-    currentLevel: {
-      type: Number,
-      default: 0,
-    },
-    alertThreshold: {
-      type: Number,
-      required: true,
-    },
-    alarmThreshold: {
-      type: Number,
-      required: true,
-    },
-    criticalThreshold: {
-      type: Number,
+    structure: {
+      type: String,
       required: true,
     },
   },

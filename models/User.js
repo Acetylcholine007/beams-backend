@@ -18,10 +18,6 @@ const userSchema = new Schema({
     type: String,
     required: true,
   },
-  contactNo: {
-    type: String,
-    required: true,
-  },
   accountType: {
     type: Number,
     default: 1,
@@ -29,11 +25,6 @@ const userSchema = new Schema({
   isVerified: {
     type: Boolean,
     default: false,
-  },
-  defaultBuoy: {
-    type: Schema.Types.ObjectId,
-    ref: "Buoy",
-    default: null,
   },
 });
 

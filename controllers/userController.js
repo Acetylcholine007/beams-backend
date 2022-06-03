@@ -86,7 +86,6 @@ exports.patchUser = async (req, res, next) => {
 
     user.firstname = req.body.firstname;
     user.lastname = req.body.lastname;
-    user.contactNo = req.body.contactNo;
     await user.save();
     res.status(200).json({
       message: "User updated",
