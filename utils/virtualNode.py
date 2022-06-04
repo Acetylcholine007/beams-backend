@@ -140,7 +140,7 @@ def send_data(raw_list, ax, ay, az, fft_list, fx, fy, fz):
     try:
         print("Sending data...")
         response = requests.post(
-            f'http://localhost:8000/test/postRead', data=json.dumps(body), headers=header)
+            f'http://localhost:8000/readings', data=json.dumps(body), headers=header)
         print(response.status_code)
 
     except Exception as e:

@@ -43,7 +43,7 @@ exports.postReading = async (req, res, next) => {
       rawX: req.body.rawX,
       rawY: req.body.rawY,
       rawZ: req.body.rawZ,
-      fftX: req.body.rawX,
+      fftX: req.body.fftX,
       fftY: req.body.fftY,
       fftZ: req.body.fftZ,
       rawDatetime: req.body.rawDatetime,
