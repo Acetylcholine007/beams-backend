@@ -8,10 +8,11 @@ const corsMW = require("./middlewares/corsMW");
 const errorMW = require("./middlewares/errorMW");
 
 const authRoutes = require("./routes/authRoutes");
+const structureRoutes = require("./routes/structureRoutes");
 const nodeRoutes = require("./routes/nodeRoutes");
 const readingRoutes = require("./routes/readingRoutes");
 const userRoutes = require("./routes/userRoutes");
-const testRoutes = require("./routes/testRoutes"); //TEMPORARY
+const testRoutes = require("./routes/testRoutes");
 
 const app = express();
 
@@ -25,10 +26,11 @@ app.use(express.static(path.join(__dirname, "public")));
 app.use(corsMW);
 
 app.use("/auth", authRoutes);
+app.use("/structures", structureRoutes);
 app.use("/nodes", nodeRoutes);
 app.use("/readings", readingRoutes);
 app.use("/users", userRoutes);
-app.use("/test", testRoutes); //TEMPORARY
+app.use("/test", testRoutes);
 
 app.use(errorMW);
 

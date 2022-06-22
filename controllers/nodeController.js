@@ -1,14 +1,17 @@
 const { validationResult } = require("express-validator/check");
-
+const { ObjectId } = require("mongodb");
 const Node = require("../models/Node");
 const Reading = require("../models/Reading");
+const Structure = require("../models/Structure");
 
-exports.gatNodes = async (req, res, next) => {
+exports.getNodes = async (req, res, next) => {
   try {
-    const nodes = await Node.find({}).sort({ createdAt: -1 });
+    const nodes = await Node.find({})
+      .sort({ createdAt: -1 })
+      .populate("structure");
 
     res.status(200).json({
-      message: "Nodes fetched successfully.",
+      message: "Nodes fetched.",
       nodes,
       totalItems: nodes.length,
     });
@@ -22,7 +25,12 @@ exports.gatNodes = async (req, res, next) => {
 
 exports.getNode = async (req, res, next) => {
   try {
-    const node = await Node.findById(req.params.nodeId);
+    const node = await Node.findById(req.params.nodeId).populate("structure");
+    if (!node) {
+      const error = new Error("Node does not exists");
+      error.statusCode = 422;
+      throw error;
+    }
     let readings = await Reading.find({
       serialKey: node.serialKey,
     }).sort({ datetime: -1 });
@@ -52,13 +60,24 @@ exports.postNode = async (req, res, next) => {
       throw error;
     }
 
+    const structure = await Structure.findById(req.body.structure);
+    if (!structure) {
+      const error = new Error("Structure does not exists");
+      error.statusCode = 422;
+      throw error;
+    }
+
     const node = new Node({
       serialKey: req.body.serialKey,
-      point: req.body.point,
+      name: req.body.name,
+      description: req.body.description,
       structure: req.body.structure,
     });
 
     await node.save();
+    structure.nodes.push(node);
+    await structure.save();
+
     res.status(200).json({
       message: "Node added",
       node,
@@ -96,8 +115,8 @@ exports.patchNode = async (req, res, next) => {
     }
 
     node.serialKey = req.body.serialKey;
-    node.point = req.body.point;
-    node.structure = req.body.structure;
+    node.name = req.body.name;
+    node.description = req.body.description;
 
     await node.save();
     res.status(200).json({
@@ -121,6 +140,7 @@ exports.deleteNode = async (req, res, next) => {
     }
 
     await Node.findByIdAndRemove(req.params.nodeId);
+    //TODO: remove node from structure
 
     res.status(200).json({
       message: "Node Removed",

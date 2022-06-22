@@ -7,7 +7,7 @@ const userAuthMW = require("../middlewares/userAuthMW");
 const router = express.Router();
 const Node = require("../models/Node");
 
-router.get("/", nodeController.gatNodes);
+router.get("/", nodeController.getNodes);
 
 router.get("/:nodeId", nodeController.getNode);
 
@@ -19,9 +19,9 @@ router.post(
       .trim()
       .not()
       .isEmpty()
-      .custom((value, { req }) => {
-        if (value.length !== 11) {
-          return Promise.reject("Serial key should be 11 character String");
+      .custom((value) => {
+        if (value.length !== 8) {
+          return Promise.reject("Serial key should be 8 character String");
         }
         return Node.findOne({ serialKey: value }).then((nodeDoc) => {
           if (nodeDoc) {
@@ -29,8 +29,12 @@ router.post(
           }
         });
       }),
-      body("point").not().isEmpty().withMessage("Enter Structure point identification"),
-      body("structure").not().isEmpty().withMessage("Enter Structure identification"),
+    body("name").not().isEmpty().withMessage("Node name required"),
+    body("description")
+      .not()
+      .isEmpty()
+      .withMessage("Node description required"),
+    body("structure").not().isEmpty().withMessage("Structure ID required"),
   ],
   nodeController.postNode
 );
@@ -39,8 +43,11 @@ router.patch(
   "/:nodeId",
   userAuthMW,
   [
-    body("point").not().isEmpty().withMessage("Enter Structure point identification"),
-    body("structure").not().isEmpty().withMessage("Enter Structure identification"),
+    body("name").not().isEmpty().withMessage("Node name required"),
+    body("description")
+      .not()
+      .isEmpty()
+      .withMessage("Node description required"),
   ],
   nodeController.patchNode
 );

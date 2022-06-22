@@ -1,12 +1,8 @@
 const mongoose = require("mongoose");
 const Schema = mongoose.Schema;
 
-const nodeSchema = new Schema(
+const structureSchema = new Schema(
   {
-    serialKey: {
-      type: String,
-      required: true,
-    },
     name: {
       type: String,
       required: true,
@@ -15,9 +11,13 @@ const nodeSchema = new Schema(
       type: String,
       required: true,
     },
-    structure: { type: Schema.Types.ObjectId, ref: "Structure" },
+    location: {
+      type: String,
+      required: true,
+    },
+    nodes: [{ type: Schema.Types.ObjectId, ref: "Node" }],
   },
   { timestamps: true }
 );
 
-module.exports = mongoose.model("Node", nodeSchema);
+module.exports = mongoose.model("Structure", structureSchema);
