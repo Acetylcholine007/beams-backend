@@ -24,9 +24,30 @@ serialKey = "00000000"
 #     mode=AK8963_MODE_C100HZ)
 
 
-def dummy_sensor():
-    time.sleep(0.01)
-    return (random.uniform(0.4, 2), random.uniform(0.4, 2), random.uniform(2, 4))
+def dummy_sensor(x):
+    p1f = 2
+    p1mag = 25
+    s1f = 4
+    s1mag = 30
+    p1 = p1mag * np.sin(2*np.pi*p1f * x)
+    s1 = s1mag * np.sin(2*np.pi*s1f * x)
+
+    p2f = 2
+    p2mag = 25
+    s2f = 4
+    s2mag = 30
+    p2 = p2mag * np.cos(2*np.pi*p2f * x)
+    s2 = s2mag * np.cos(2*np.pi*s2f * x)
+
+    p3f = 4
+    p3mag = 30
+    s3f = 5
+    s3mag = 35
+    p3 = p3mag * np.sin(2*np.pi*p3f * x)
+    s3 = s3mag * np.sin(2*np.pi*s3f * x)
+
+    # return (p1+s1, p2+s2, p3+s3)
+    return (p1+s1+random.uniform(0.4, 2), p2+s2+random.uniform(0.4, 2), p3+s3+random.uniform(2, 4))
 
 # function for gathering data
 
@@ -38,13 +59,17 @@ def gather_data():
     array_ay = []
     array_az = []
     major_array = []  # Storage of data in pattern [(ax,ay, az),(ax, ay, az)]
+    x = 0
 
     while True:
+        time.sleep(0.01)
         try:
             # ax,ay,az = mpu.readAccelerometerMaster()
-            ax, ay, az = dummy_sensor()
-            now = datetime.now()
-            date_time = (now.strftime("%Y-%m-%d, %H:%M:%S"))
+            ax, ay, az = dummy_sensor(x)
+            x += 0.01
+            # now = datetime.now()
+            # date_time = (now.strftime("%Y-%m-%d, %H:%M:%S"))
+            date_time = str(datetime.utcnow())
 
             array_ax.append(ax)
             array_ay.append(ay)
@@ -93,27 +118,23 @@ def process_data(datax, datay, dataz):
     print("Processing data...")
     dataProcessX, dataProcessY, dataProcessZ = datax, datay, dataz
 
-    fr1 = (100/2)*np.linspace(0, 1, int(samplesize/2))
+    fr = (100/2)*np.linspace(0, 1, int(samplesize/2))
 
     X1 = fft(np.subtract(dataProcessX, mean(dataProcessX)))
-    X_m1 = (2/samplesize)*abs(X1[0:np.size(fr1)])
+    X_m1 = (2/samplesize)*abs(X1[0:np.size(fr)])
 
-    fr2 = (100/2)*np.linspace(0, 1, int(samplesize/2))
     Y2 = fft(np.subtract(dataProcessY, mean(dataProcessY)))
-    Y_m1 = (2/samplesize)*abs(Y2[0:np.size(fr2)])
+    Y_m1 = (2/samplesize)*abs(Y2[0:np.size(fr)])
 
-    fr3 = (100/2)*np.linspace(0, 1, int(samplesize/2))
     Z3 = fft(np.subtract(dataProcessZ, mean(dataProcessZ)))
-    Z_m1 = (2/samplesize)*abs(Z3[0:np.size(fr3)])
+    Z_m1 = (2/samplesize)*abs(Z3[0:np.size(fr)])
 
     for d in range(50):
         fx.append(X_m1[d])
         fy.append(Y_m1[d])
         fz.append(Z_m1[d])
-        now = datetime.now()
-        date = (now.strftime("%Y-%m-%d"))
 
-        farray.append([fx[d], fy[d], fz[d], date])
+        farray.append([fx[d], fy[d], fz[d], round(fr[d])])
 
         if (len(farray) == 50):
 
@@ -125,17 +146,17 @@ def process_data(datax, datay, dataz):
 def send_data(raw_list, ax, ay, az, fft_list, fx, fy, fz):
     header = {"Content-type": "application/json"}
     body = {
-        "serialKey": serialKey, 
-        "rawX": ax, 
-        "rawY": ay, 
-        "rawZ": az, 
-        "fftX": fx, 
-        "fftY": fy, 
+        "serialKey": serialKey,
+        "rawX": ax,
+        "rawY": ay,
+        "rawZ": az,
+        "fftX": fx,
+        "fftY": fy,
         "fftZ": fz,
-        "rawDatetime": list(map(lambda item: item[3], raw_list)), 
-        "fftDatetime": list(map(lambda item: item[3], fft_list)),
+        "rawDatetime": list(map(lambda item: item[3], raw_list)),
+        "fftFrequency": list(map(lambda item: item[3], fft_list)),
         "datetime": str(datetime.utcnow())
-        }
+    }
 
     try:
         print("Sending data...")

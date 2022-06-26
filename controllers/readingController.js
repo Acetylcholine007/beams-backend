@@ -1,7 +1,6 @@
 const { validationResult } = require("express-validator/check");
 const { DateTime } = require("luxon");
 const Reading = require("../models/Reading");
-const Buoy = require("../models/Node");
 const io = require("../utils/socket");
 
 exports.getReading = async (req, res, next) => {
@@ -47,7 +46,7 @@ exports.postReading = async (req, res, next) => {
       fftY: req.body.fftY,
       fftZ: req.body.fftZ,
       rawDatetime: req.body.rawDatetime,
-      fftDatetime: req.body.fftDatetime,
+      fftFrequency: req.body.fftFrequency,
       datetime: req.body.datetime,
     });
 

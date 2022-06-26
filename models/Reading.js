@@ -11,7 +11,7 @@ const readingSchema = Schema(
     fftY: [Number],
     fftZ: [Number],
     rawDatetime: [Date],
-    fftDatetime: [Date],
+    fftFrequency: [Number],
     datetime: Date,
   },
   {
