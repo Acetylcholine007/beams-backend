@@ -27,6 +27,28 @@ exports.getReading = async (req, res, next) => {
   }
 };
 
+exports.getReadings = async (req, res, next) => {
+  try {
+    const newDatetime = DateTime.fromISO(req.query.datetime);
+    let readings = await Reading.find({
+      serialKey: req.query.serialKey,
+      datetime: {
+        $gte: newDatetime,
+        $lt: newDatetime.plus({ minutes: 1 }),
+      },
+    }).sort({ datetime: 1 });
+
+    res.status(200).json({
+      readings,
+    });
+  } catch (err) {
+    if (!err.statusCode) {
+      err.statusCode = 500;
+    }
+    next(err);
+  }
+};
+
 exports.postReading = async (req, res, next) => {
   try {
     const errors = validationResult(req);
@@ -36,7 +58,7 @@ exports.postReading = async (req, res, next) => {
       error.data = errors.array();
       throw error;
     }
-    
+
     const reading = new Reading({
       serialKey: req.body.serialKey,
       rawX: req.body.rawX,

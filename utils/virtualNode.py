@@ -1,6 +1,6 @@
 # from mpu9250_jmdev.registers import *
 # from mpu9250_jmdev.mpu_9250 import MPU9250
-from datetime import datetime
+from datetime import datetime, timezone
 from statistics import mean
 from scipy.fftpack import fft
 import numpy as np
@@ -10,7 +10,9 @@ import concurrent.futures
 import requests
 import json
 import random
+import pytz
 
+PHI = pytz.timezone('Asia/Manila')
 serialKey = "00000000"
 
 # mpu = MPU9250(
@@ -69,7 +71,8 @@ def gather_data():
             x += 0.01
             # now = datetime.now()
             # date_time = (now.strftime("%Y-%m-%d, %H:%M:%S"))
-            date_time = str(datetime.utcnow())
+            date_time = str(datetime.now(
+                timezone.utc).astimezone(PHI).isoformat())
 
             array_ax.append(ax)
             array_ay.append(ay)
@@ -155,11 +158,12 @@ def send_data(raw_list, ax, ay, az, fft_list, fx, fy, fz):
         "fftZ": fz,
         "rawDatetime": list(map(lambda item: item[3], raw_list)),
         "fftFrequency": list(map(lambda item: item[3], fft_list)),
-        "datetime": str(datetime.utcnow())
+        "datetime": str(datetime.now(timezone.utc).astimezone(PHI).isoformat())
     }
 
     try:
         print("Sending data...")
+        print(body)
         response = requests.post(
             f'http://localhost:8000/test/postRead', data=json.dumps(body), headers=header)
         print(response.status_code)
@@ -180,7 +184,10 @@ def send_data(raw_list, ax, ay, az, fft_list, fx, fy, fz):
 # Connection to database --> Data gathering --> Data Processing --> Data Sending
 
 def main():
+    count = 0
     while True:
+        if count == 120:
+            break
         start_time = time.time()
         thresh, rawList, ax, ay, az = gather_data()
         # print (time.time() - start_time)
@@ -197,7 +204,8 @@ def main():
 
         else:
             print("Data do not passed the given threshold")
-        # break
+        break
+        # count += 1
 
 
 if __name__ == "__main__":

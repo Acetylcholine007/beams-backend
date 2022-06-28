@@ -15,6 +15,10 @@ const nodeSchema = new Schema(
       type: String,
       required: true,
     },
+    imageUri: {
+      type: String,
+      default: "",
+    },
     structure: { type: Schema.Types.ObjectId, ref: "Structure" },
   },
   { timestamps: true }

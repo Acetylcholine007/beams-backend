@@ -4,7 +4,9 @@ const Structure = require("../models/Structure");
 
 exports.getStructures = async (req, res, next) => {
   try {
-    const structures = await Structure.find({})
+    const structures = await Structure.find({
+      name: { $regex: req.query.query, $options: "i" },
+    })
       .sort({ createdAt: -1 })
       .populate("nodes");
 
@@ -53,6 +55,7 @@ exports.postStructure = async (req, res, next) => {
       name: req.body.name,
       description: req.body.description,
       location: req.body.location,
+      imageUri: req.body.imageUri,
     });
 
     await structure.save();
@@ -79,7 +82,7 @@ exports.patchStructure = async (req, res, next) => {
     }
 
     const structure = await Structure.findById(req.params.structureId);
-    const structure2 = await Structure.findOne({ serialKey: req.body.name });
+    const structure2 = await Structure.findOne({ name: req.body.name });
     if (!structure) {
       const error = new Error("Structure does not exists");
       error.statusCode = 422;
@@ -96,11 +99,12 @@ exports.patchStructure = async (req, res, next) => {
     structure.description = req.body.description;
     structure.location = req.body.location;
     structure.nodes = req.body.nodes;
+    structure.imageUri = req.body.imageUri;
 
     await structure.save();
     res.status(200).json({
       message: "Structure updated",
-      node: structure,
+      structure,
     });
   } catch (err) {
     if (!err.statusCode) {

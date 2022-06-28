@@ -1,4 +1,5 @@
 const { validationResult } = require("express-validator/check");
+const { DateTime } = require("luxon");
 const { ObjectId } = require("mongodb");
 const Node = require("../models/Node");
 const Reading = require("../models/Reading");
@@ -31,11 +32,24 @@ exports.getNode = async (req, res, next) => {
       error.statusCode = 422;
       throw error;
     }
-    let readings = await Reading.find({
+    let latestReading = await Reading.findOne({
       serialKey: node.serialKey,
     }).sort({ datetime: -1 });
+    let readings = [];
+    if (latestReading) {
+      const datetime = new Date(latestReading.datetime);
+      datetime.setSeconds(0);
+      const newDatetime = DateTime.fromJSDate(datetime);
+      readings = await Reading.find({
+        serialKey: node.serialKey,
+        datetime: {
+          $gte: newDatetime,
+          $lt: newDatetime.plus({ minutes: 1 }),
+        },
+      }).sort({ datetime: 1 });
+    }
 
-    readings.sort((a, b) => new Date(a.datetime) - new Date(b.datetime));
+    // readings.sort((a, b) => new Date(a.datetime) - new Date(b.datetime));
 
     res.status(200).json({
       message: "Node fetched",
@@ -72,6 +86,7 @@ exports.postNode = async (req, res, next) => {
       name: req.body.name,
       description: req.body.description,
       structure: req.body.structure,
+      imageUri: req.body.imageUri,
     });
 
     await node.save();
@@ -117,6 +132,7 @@ exports.patchNode = async (req, res, next) => {
     node.serialKey = req.body.serialKey;
     node.name = req.body.name;
     node.description = req.body.description;
+    node.imageUri = req.body.imageUri;
 
     await node.save();
     res.status(200).json({
