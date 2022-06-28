@@ -120,6 +120,8 @@ exports.verifyUser = async (req, res, next) => {
 
     res.render("verificationResult", {
       message: "Verification successful",
+      webappUrl: process.env.WEBAPP_URL,
+      serverUrl: process.env.SERVER_URL,
     });
   } catch (err) {
     if (!err.statusCode) {
@@ -135,6 +137,8 @@ exports.resetPassword = async (req, res, next) => {
     if (!user) {
       res.render("resetPasswordResult", {
         message: "Password Reset unsuccessful, user not found.",
+        webappUrl: process.env.WEBAPP_URL,
+        serverUrl: process.env.SERVER_URL,
       });
     }
 
@@ -142,6 +146,7 @@ exports.resetPassword = async (req, res, next) => {
       res.render("resetPasswordForm", {
         uid: req.params.uid,
         isValid: false,
+        serverUrl: process.env.SERVER_URL,
       });
     }
 
@@ -152,6 +157,7 @@ exports.resetPassword = async (req, res, next) => {
 
     res.render("resetPasswordResult", {
       message: "Password Reset successful",
+      webappUrl: process.env.WEBAPP_URL,
     });
   } catch (err) {
     if (!err.statusCode) {
@@ -166,6 +172,7 @@ exports.resetPasswordForm = async (req, res, next) => {
     res.render("resetPasswordForm", {
       uid: req.params.uid,
       isValid: true,
+      serverUrl: process.env.SERVER_URL,
     });
   } catch (err) {
     if (!err.statusCode) {
@@ -188,7 +195,7 @@ exports.sendResetPassword = async (req, res, next) => {
 
     const htmlTemplate = await ejs.renderFile(
       path.join(__dirname, "../views/resetPasswordLink.ejs"),
-      { uid }
+      { uid, serverUrl: process.env.SERVER_URL }
     );
     await sendMail.sendMail(
       req.body.email,
@@ -220,7 +227,7 @@ exports.sendVerification = async (req, res, next) => {
 
     const htmlTemplate = await ejs.renderFile(
       path.join(__dirname, "../views/emailVerification.ejs"),
-      { verificationToken }
+      { verificationToken, serverUrl: process.env.SERVER_URL }
     );
     sendMail.sendMail(req.body.email, "VERIFY EMAIL", htmlTemplate);
 
