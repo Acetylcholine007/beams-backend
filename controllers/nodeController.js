@@ -1,9 +1,9 @@
 const { validationResult } = require("express-validator/check");
 const { DateTime } = require("luxon");
-const { ObjectId } = require("mongodb");
 const Node = require("../models/Node");
 const Reading = require("../models/Reading");
 const Structure = require("../models/Structure");
+mongoose = require("mongoose");
 
 exports.getNodes = async (req, res, next) => {
   try {
@@ -48,8 +48,6 @@ exports.getNode = async (req, res, next) => {
         },
       }).sort({ datetime: 1 });
     }
-
-    // readings.sort((a, b) => new Date(a.datetime) - new Date(b.datetime));
 
     res.status(200).json({
       message: "Node fetched",
@@ -155,8 +153,14 @@ exports.deleteNode = async (req, res, next) => {
       throw error;
     }
 
+    const node = await Node.findById(req.params.nodeId).populate("structure");
+
+    const sess = await mongoose.startSession();
+    sess.startTransaction();
     await Node.findByIdAndRemove(req.params.nodeId);
-    //TODO: remove node from structure
+    node.structure.nodes.pull(node);
+    await node.structure.save({ session: sess });
+    await sess.commitTransaction();
 
     res.status(200).json({
       message: "Node Removed",

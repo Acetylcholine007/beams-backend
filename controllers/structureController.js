@@ -1,6 +1,7 @@
 const { validationResult } = require("express-validator/check");
-
+mongoose = require("mongoose");
 const Structure = require("../models/Structure");
+const Node = require("../models/Node");
 
 exports.getStructures = async (req, res, next) => {
   try {
@@ -122,8 +123,12 @@ exports.deleteStructure = async (req, res, next) => {
       throw error;
     }
 
-    //TODO: Add dependency deletion
-    await Structure.findByIdAndRemove(req.params.structureId);
+    const structure = await Structure.findById(req.params.structureId);
+
+    const sess = await mongoose.startSession();
+    sess.startTransaction();
+    await structure.remove({ session: sess });
+    await sess.commitTransaction();
 
     res.status(200).json({
       message: "Structure Removed",

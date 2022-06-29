@@ -12,17 +12,6 @@ exports.testPostReading = async (req, res, next) => {
       error.data = errors.array();
       throw error;
     }
-    // const dateParts = req.body.date.split("/");
-    // const timeParts = req.body.time.split(":");
-
-    // let datetime = DateTime.local({
-    //   year: dateParts[2],
-    //   day: dateParts[1],
-    //   month: dateParts[0],
-    //   hour: timeParts[0],
-    //   minute: timeParts[1],
-    //   second: timeParts[2],
-    // }).setZone("Asia/Singapore");
 
     const reading = new Reading({
       serialKey: req.body.serialKey,
@@ -37,13 +26,6 @@ exports.testPostReading = async (req, res, next) => {
       datetime: req.body.datetime,
     });
 
-    // Corrective Logic
-    // if (dateParts[2] === "1970") {
-    //   datetime = DateTime.now().setLocale("ph");
-    //   reading.datetime = datetime;
-    // }
-
-    // console.log(reading);
     console.log(reading);
     io.getIO().emit(req.body.serialKey, reading);
 
