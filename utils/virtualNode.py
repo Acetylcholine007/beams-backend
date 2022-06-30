@@ -27,21 +27,21 @@ serialKey = "00000000"
 
 
 def dummy_sensor(x):
-    p1f = 2
+    p1f = 20
     p1mag = 25
-    s1f = 4
+    s1f = 15
     s1mag = 30
     p1 = p1mag * np.sin(2*np.pi*p1f * x)
     s1 = s1mag * np.sin(2*np.pi*s1f * x)
 
-    p2f = 2
+    p2f = 10
     p2mag = 25
-    s2f = 4
+    s2f = 6
     s2mag = 30
     p2 = p2mag * np.cos(2*np.pi*p2f * x)
     s2 = s2mag * np.cos(2*np.pi*s2f * x)
 
-    p3f = 4
+    p3f = 2
     p3mag = 30
     s3f = 5
     s3mag = 35
@@ -163,9 +163,8 @@ def send_data(raw_list, ax, ay, az, fft_list, fx, fy, fz):
 
     try:
         print("Sending data...")
-        print(body)
         response = requests.post(
-            f'http://localhost:8000/test/postRead', data=json.dumps(body), headers=header)
+            f'http://192.168.1.18:8000/test/postRead', data=json.dumps(body), headers=header)
         print(response.status_code)
 
     except Exception as e:
@@ -186,7 +185,7 @@ def send_data(raw_list, ax, ay, az, fft_list, fx, fy, fz):
 def main():
     count = 0
     while True:
-        if count == 9:
+        if count == 4:
             break
         start_time = time.time()
         thresh, rawList, ax, ay, az = gather_data()

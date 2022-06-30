@@ -73,7 +73,20 @@ exports.postReading = async (req, res, next) => {
     });
 
     await reading.save();
-    io.getIO().emit(req.body.serialKey, reading);
+
+    const newReading = { ...reading.toObject() };
+    
+    newReading.rawDatetime = newReading.rawDatetime.map((stamp) =>
+      DateTime.fromISO(stamp.toISOString())
+        .setZone("Asia/Manila")
+        .toFormat("ss' sec. 'SSS' ms.'")
+    );
+    
+    newReading.fftFrequency = newReading.fftFrequency.map(
+      (freq) => `${freq} Hz`
+    );
+
+    io.getIO().emit(req.body.serialKey, newReading);
 
     res.status(200).json({ success: true });
   } catch (err) {
