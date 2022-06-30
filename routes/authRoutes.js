@@ -11,8 +11,11 @@ router.post(
   "/user/signup",
   [
     body("email")
+      .not()
+      .isEmpty()
+      .trim()
       .isEmail()
-      .withMessage("Please enter a valid email")
+      .withMessage("Valid email required")
       .custom((value, { req }) => {
         return User.findOne({ email: value }).then((userDoc) => {
           if (userDoc) {
@@ -22,19 +25,21 @@ router.post(
       })
       .normalizeEmail({ gmail_remove_dots: false }),
     body("password")
+      .not()
+      .isEmpty()
       .trim()
       .isLength({ min: 5 })
       .withMessage("Minimum Password length: 5"),
     body("firstname")
-      .trim()
       .not()
       .isEmpty()
-      .withMessage("Please enter First Name"),
+      .trim()
+      .withMessage("First Name required"),
     body("lastname")
-      .trim()
       .not()
       .isEmpty()
-      .withMessage("Please enter Last Name"),
+      .trim()
+      .withMessage("Last Name required"),
   ],
   authController.signup
 );
@@ -42,8 +47,8 @@ router.post(
 router.post(
   "/user/login",
   [
-    body("email").isEmail().trim().not().isEmpty(),
-    body("password").trim().not().isEmpty(),
+    body("email").not().isEmpty().trim().isEmail().withMessage("Valid email required"),
+    body("password").not().isEmpty().trim().withMessage("Password required"),
   ],
   authController.login
 );
@@ -54,15 +59,9 @@ router.get(
   authController.verifyUser
 );
 
-router.get(
-  "/user/resetPasswordForm/:uid",
-  authController.resetPasswordForm
-);
+router.get("/user/resetPasswordForm/:uid", authController.resetPasswordForm);
 
-router.post(
-  "/user/resetPassword/:uid",
-  authController.resetPassword
-);
+router.post("/user/resetPassword/:uid", authController.resetPassword);
 
 router.post(
   "/user/sendResetPassword",

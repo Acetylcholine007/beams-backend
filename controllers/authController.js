@@ -57,6 +57,14 @@ exports.signup = async (req, res, next) => {
 
 exports.login = async (req, res, next) => {
   try {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      const error = new Error("Failed to pass validation");
+      error.statusCode = 422;
+      error.data = errors.array();
+      throw error;
+    }
+    
     const email = req.body.email;
     const password = req.body.password;
     let loadedUser;

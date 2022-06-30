@@ -186,7 +186,7 @@ def send_data(raw_list, ax, ay, az, fft_list, fx, fy, fz):
 def main():
     count = 0
     while True:
-        if count == 120:
+        if count == 9:
             break
         start_time = time.time()
         thresh, rawList, ax, ay, az = gather_data()
@@ -204,8 +204,8 @@ def main():
 
         else:
             print("Data do not passed the given threshold")
-        break
-        # count += 1
+        # break
+        count += 1
 
 
 if __name__ == "__main__":
