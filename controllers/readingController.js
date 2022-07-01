@@ -1,5 +1,6 @@
 const { validationResult } = require("express-validator/check");
 const { DateTime } = require("luxon");
+const Node = require("../models/Node");
 const Reading = require("../models/Reading");
 const io = require("../utils/socket");
 
@@ -59,6 +60,13 @@ exports.postReading = async (req, res, next) => {
       throw error;
     }
 
+    const node = await Node.findOne({serialKey: req.body.serialKey});
+    if(!node) {
+      const error = new Error("Receiving node does not exist");
+      error.statusCode = 401;
+      throw error;
+    }
+
     const reading = new Reading({
       serialKey: req.body.serialKey,
       rawX: req.body.rawX,
@@ -72,7 +80,10 @@ exports.postReading = async (req, res, next) => {
       datetime: req.body.datetime,
     });
 
-    await reading.save();
+    if(node.saveMode) {
+      console.log('reached');
+      await reading.save();
+    }
 
     const newReading = { ...reading.toObject() };
     

@@ -84,6 +84,7 @@ exports.postNode = async (req, res, next) => {
       name: req.body.name,
       description: req.body.description,
       structure: req.body.structure,
+      saveMode: req.body.saveMode,
       imageUri: req.body.imageUri,
     });
 
@@ -127,10 +128,11 @@ exports.patchNode = async (req, res, next) => {
       throw error;
     }
 
-    node.serialKey = req.body.serialKey;
+    // node.serialKey = req.body.serialKey;
     node.name = req.body.name;
     node.description = req.body.description;
     node.imageUri = req.body.imageUri;
+    node.saveMode = req.body.saveMode;
 
     await node.save();
     res.status(200).json({
@@ -157,9 +159,9 @@ exports.deleteNode = async (req, res, next) => {
 
     const sess = await mongoose.startSession();
     sess.startTransaction();
-    await Node.findByIdAndRemove(req.params.nodeId);
     node.structure.nodes.pull(node);
     await node.structure.save({ session: sess });
+    await node.remove({ session: sess });
     await sess.commitTransaction();
 
     res.status(200).json({

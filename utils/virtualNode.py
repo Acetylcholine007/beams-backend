@@ -164,7 +164,7 @@ def send_data(raw_list, ax, ay, az, fft_list, fx, fy, fz, time_stamp):
     try:
         print("Sending data...")
         response = requests.post(
-            f'http://192.168.1.18:8000/test/postRead', data=json.dumps(body), headers=header)
+            f'http://192.168.1.18:8000/readings', data=json.dumps(body), headers=header)
         print(response.status_code)
 
     except Exception as e:
