@@ -146,7 +146,7 @@ def process_data(datax, datay, dataz):
 
 
 # Function for the sending data on the database
-def send_data(raw_list, ax, ay, az, fft_list, fx, fy, fz):
+def send_data(raw_list, ax, ay, az, fft_list, fx, fy, fz, time_stamp):
     header = {"Content-type": "application/json"}
     body = {
         "serialKey": serialKey,
@@ -158,7 +158,7 @@ def send_data(raw_list, ax, ay, az, fft_list, fx, fy, fz):
         "fftZ": fz,
         "rawDatetime": list(map(lambda item: item[3], raw_list)),
         "fftFrequency": list(map(lambda item: item[3], fft_list)),
-        "datetime": str(datetime.now(timezone.utc).astimezone(PHI).isoformat())
+        "datetime": time_stamp
     }
 
     try:
@@ -188,6 +188,7 @@ def main():
         if count == 4:
             break
         start_time = time.time()
+        time_stamp = str(datetime.now(timezone.utc).astimezone(PHI).isoformat())
         thresh, rawList, ax, ay, az = gather_data()
         # print (time.time() - start_time)
 
@@ -196,7 +197,7 @@ def main():
                 future = executor.submit(process_data, ax, ay, az)
                 fftList, fx, fy, fz = future.result()
                 send = threading.Thread(target=send_data, args=[
-                                        rawList, ax, ay, az, fftList, fx, fy, fz])
+                                        rawList, ax, ay, az, fftList, fx, fy, fz, time_stamp])
                 send.start()
                 send.join()
                 print(time.time() - start_time)

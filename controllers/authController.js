@@ -40,7 +40,7 @@ exports.signup = async (req, res, next) => {
 
     const htmlTemplate = await ejs.renderFile(
       path.join(__dirname, "../views/emailVerification.ejs"),
-      { verificationToken }
+      { verificationToken, serverUrl: process.env.SERVER_URL}
     );
     sendMail.sendMail(req.body.email, "VERIFY EMAIL", htmlTemplate);
 
