@@ -1,5 +1,3 @@
-from mpu9250_jmdev.registers import *
-from mpu9250_jmdev.mpu_9250 import MPU9250
 from datetime import datetime, timezone
 from statistics import mean
 from scipy.fftpack import fft
@@ -9,36 +7,74 @@ import threading
 import concurrent.futures
 import requests
 import json
-import random
 import pytz
+import smbus
 
+#some MPU6050 Registers and their Address
+PWR_MGMT_1   = 0x6B
+SMPLRT_DIV   = 0x19
+CONFIG       = 0x1A
+GYRO_CONFIG  = 0x1B
+INT_ENABLE   = 0x38
+ACCEL_XOUT_H = 0x3B
+ACCEL_YOUT_H = 0x3D
+ACCEL_ZOUT_H = 0x3F
+GYRO_XOUT_H  = 0x43
+GYRO_YOUT_H  = 0x45
+GYRO_ZOUT_H  = 0x47
+
+
+def MPU_Init():
+	#write to sample rate register
+	bus.write_byte_data(Device_Address, SMPLRT_DIV, 7)
+	
+	#Write to power management register
+	bus.write_byte_data(Device_Address, PWR_MGMT_1, 1)
+	
+	#Write to Configuration register
+	bus.write_byte_data(Device_Address, CONFIG, 0)
+	
+	#Write to Gyro configuration register
+	bus.write_byte_data(Device_Address, GYRO_CONFIG, 24)
+	
+	#Write to interrupt enable register
+	bus.write_byte_data(Device_Address, INT_ENABLE, 1)
+
+def read_raw_data(addr):
+	#Accelero and Gyro value are 16-bit
+        high = bus.read_byte_data(Device_Address, addr)
+        low = bus.read_byte_data(Device_Address, addr+1)
+    
+        #concatenate higher and lower value
+        value = ((high << 8) | low)
+        
+        #to get signed value from mpu6050
+        if(value > 32768):
+                value = value - 65536
+        return value/16384.0
+
+def read_acceleration():
+    return (read_raw_data(ACCEL_XOUT_H), read_raw_data(ACCEL_YOUT_H), read_raw_data(ACCEL_ZOUT_H))
+
+bus = smbus.SMBus(1)
+Device_Address = 0x68
+
+MPU_Init()
 PHI = pytz.timezone('Asia/Manila')
 serialKey = "00000000"
-
-mpu = MPU9250(
-    address_ak=AK8963_ADDRESS, 
-    address_mpu_master=MPU9050_ADDRESS_68, # In 0x68 Address
-    address_mpu_slave=None, 
-    bus=1, 
-    gfs=GFS_1000, 
-    afs=AFS_2G, 
-    mfs=AK8963_BIT_16, 
-    mode=AK8963_MODE_C100HZ)
-
-##function for gathering data
 
 def gather_data():
 
     ## Initialize hundred data storage
-    array_ax = [] ## Storage for x-axis data
+    array_ax = []
     array_ay = []
     array_az = []
     major_array = [] ## Storage of data in pattern [(ax,ay, az),(ax, ay, az)]
 
     while True:
+        time.sleep(0.008)
         try:
-            ax,ay,az = mpu.readAccelerometerMaster()
-            now = datetime.now()
+            ax,ay,az = read_acceleration()
             date_time = str(datetime.now(
                 timezone.utc).astimezone(PHI).isoformat())
 
@@ -60,6 +96,7 @@ def gather_data():
 
                 ## The return boolean will determine whether the data will be sent to the data base or not
                 
+                return True, major_array, array_ax, array_ay, array_az 
                 if (max_x >= 0.4 or max_y >= 0.4 or max_z >= 2 or min_x <= -0.4 or min_y <= -0.4 or min_z <= -2):
                     print ("Finish reading data...")
                     return True, major_array, array_ax, array_ay, array_az 
@@ -118,8 +155,7 @@ def process_data(datax, datay, dataz):
 
 
 ## Function for the sending data on the database
-        
-def send_data(raw_list, ax, ay, az, fft_list, fx, fy, fz):
+def send_data(raw_list, ax, ay, az, fft_list, fx, fy, fz, time_stamp):
     header = {"Content-type": "application/json"}
     body = {
         "serialKey": serialKey,
@@ -131,57 +167,48 @@ def send_data(raw_list, ax, ay, az, fft_list, fx, fy, fz):
         "fftZ": fz,
         "rawDatetime": list(map(lambda item: item[3], raw_list)),
         "fftFrequency": list(map(lambda item: item[3], fft_list)),
-        "datetime": str(datetime.now(timezone.utc).astimezone(PHI).isoformat())
+        "datetime": time_stamp
     }
 
     try:
         print("Sending data...")
-        print(body)
+        # print(body)
         response = requests.post(
-            f'http://192.168.1.18:8000/test/postRead', data=json.dumps(body), headers=header)
+            f'https://project-beams.herokuapp.com/readings', data=json.dumps(body), headers=header)
         print(response.status_code)
 
     except Exception as e:
         # Save data to file if there is connection problem
         print("Problem with the connection on the server")
         print(e)
-        write_raw_array = np.array(data_sent)
-        write_pro_array = np.array(farray)
+        write_raw_array = np.array(raw_list)
+        write_pro_array = np.array(fft_list)
         with open("raw_data.csv", "a") as f:
             f.write(str(write_raw_array))
         with open("pro_data.csv", "a") as f:
             f.write(str(write_pro_array))
-            
-
-
-## Main function for the whole process
-## Connection to database --> Data gathering --> Data Processing --> Data Sending
+        
 
 def main():
     while True:
         start_time = time.time()
+        time_stamp = str(datetime.now(timezone.utc).astimezone(PHI).isoformat())
         thresh, rawList, ax, ay, az = gather_data()
+        print (time.time() - start_time)
 
         if (thresh == True):
             with concurrent.futures.ThreadPoolExecutor() as executor:
                 future = executor.submit(process_data, ax, ay, az)
                 fftList, fx, fy, fz = future.result()
                 send = threading.Thread(target=send_data, args=[
-                                        rawList, ax, ay, az, fftList, fx, fy, fz])
+                                        rawList, ax, ay, az, fftList, fx, fy, fz, time_stamp])
                 send.start()
                 send.join()
                 print (time.time() - start_time)
             
         else :
             print("Data do not passed the given threshold")
-        break
     
 
 if __name__ == "__main__":
-
-    mpu.configure()
-    mpu.calibrate()
-    mpu.configure()
-    abias = mpu.abias
-    print (abias)
     main()

@@ -1,5 +1,3 @@
-# from mpu9250_jmdev.registers import *
-# from mpu9250_jmdev.mpu_9250 import MPU9250
 from datetime import datetime, timezone
 from statistics import mean
 from scipy.fftpack import fft
@@ -14,17 +12,6 @@ import pytz
 
 PHI = pytz.timezone('Asia/Manila')
 serialKey = "00000000"
-
-# mpu = MPU9250(
-#     address_ak=AK8963_ADDRESS,
-#     address_mpu_master=MPU9050_ADDRESS_68, # In 0x68 Address
-#     address_mpu_slave=None,
-#     bus=1,
-#     gfs=GFS_1000,
-#     afs=AFS_2G,
-#     mfs=AK8963_BIT_16,
-#     mode=AK8963_MODE_C100HZ)
-
 
 def dummy_sensor(x):
     p1f = 20
@@ -171,8 +158,8 @@ def send_data(raw_list, ax, ay, az, fft_list, fx, fy, fz, time_stamp):
         # Save data to file if there is connection problem
         print("Problem with the connection on the server")
         print(e)
-        write_raw_array = np.array(data_sent)
-        write_pro_array = np.array(farray)
+        write_raw_array = np.array(raw_list)
+        write_pro_array = np.array(fft_list)
         with open("raw_data.csv", "a") as f:
             f.write(str(write_raw_array))
         with open("pro_data.csv", "a") as f:
@@ -190,7 +177,6 @@ def main():
         start_time = time.time()
         time_stamp = str(datetime.now(timezone.utc).astimezone(PHI).isoformat())
         thresh, rawList, ax, ay, az = gather_data()
-        # print (time.time() - start_time)
 
         if (thresh == True):
             with concurrent.futures.ThreadPoolExecutor() as executor:
@@ -209,10 +195,4 @@ def main():
 
 
 if __name__ == "__main__":
-
-    # mpu.configure()
-    # mpu.calibrate()
-    # mpu.configure()
-    # abias = mpu.abias
-    # print (abias)
     main()
