@@ -3,6 +3,8 @@ const bodyParser = require("body-parser");
 const mongoose = require("mongoose");
 const helmet = require("helmet");
 const path = require("path");
+const dotenv = require("dotenv");
+dotenv.config();
 
 const corsMW = require("./middlewares/corsMW");
 const errorMW = require("./middlewares/errorMW");
@@ -34,6 +36,7 @@ app.use("/test", testRoutes);
 
 app.use(errorMW);
 
+console.log(">>>>", process.env.MONGO_USER, process.env.MONGO_PASSWORD);
 mongoose
   .connect(
     `mongodb+srv://${process.env.MONGO_USER}:${process.env.MONGO_PASSWORD}@cluster0.0zw4e.mongodb.net/${process.env.MONGO_DEFAULT_DATABASE}?retryWrites=true`
